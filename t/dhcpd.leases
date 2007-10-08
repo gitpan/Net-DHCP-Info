@@ -1,0 +1,7 @@
+lease 192.168.0.253 {
+  starts 3 2007/09/19 17:51:41;
+  ends 4 2007/09/20 17:51:41;
+  tstp 4 2007/09/20 17:51:41;
+  binding state free;
+  hardware ethernet 00:0e:7b:cc:bb:aa;
+}
