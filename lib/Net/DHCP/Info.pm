@@ -1,29 +1,76 @@
-
-#=======================
 package Net::DHCP::Info;
-#=======================
+
+=head1 NAME
+
+Net::DHCP::Info - Fast dhcpd.leases and dhcpd.conf parser
+
+=head1 VERSION
+
+Version 0.10
+
+=head1 SYNOPSIS
+
+    use Net::DHCP::Info;
+
+    my $conf  = Net::DHCP::Info->new($path_to_dhcpd_conf);
+    my $lease = Net::DHCP::Info->new($path_to_dhcpd_leases);
+
+    while(my $net = $conf->fetch_subnet) {
+        # .. do stuff with $net
+    }
+
+    while(my $lease = $lease->fetch_lease) {
+        # .. do stuff with $lease
+    }
+
+=cut
 
 use strict;
 use warnings;
 use Net::DHCP::Info::Obj;
 
-our $VERSION     = '0.01';
+our $VERSION     = '0.10';
 our $FIND_NET    = qr{^([^s]*)subnet\s+([\d\.]+)\s+netmask\s+([\d\.]+)};
-our $ROUTERS     = qr{^\s*option\s+routers\s+([\d\.\s]+)};
-our $RANGE       = qr{^\s*range\s+([\d\.]+)\s*([\d\.]*)};
+our $ROUTERS     = qr{^\W*option\s+routers\s+([\d\.\s]+)};
+our $RANGE       = qr{^\W*range\s+([\d\.]+)\s*([\d\.]*)};
 our $FIND_LEASE  = qr{^lease\s([\d\.]+)};
-our $STARTS      = qr{^\s+starts\s\d+\s(.+)};
-our $ENDS        = qr{^\s+ends\s\d+\s(.+)};
-our $HW_ETHERNET = qr{^\s+hardware\sethernet\s(.+)};
+our $STARTS      = qr{^\W+starts\s\d+\s(.+)};
+our $ENDS        = qr{^\W+ends\s\d+\s(.+)};
+our $HW_ETHERNET = qr{^\W+hardware\sethernet\s(.+)};
 our $REMOTE_ID   = qr{option\sagent.remote-id\s(.+)};
-our $CIRCUIT_ID  = qr{option\sagent.circuit-id\s(.+)};
-our $BINDING     = qr{^\s+binding\sstate\s(.+)};
+our $BINDING     = qr{^\W+binding\sstate\s(.+)};
+our $HOSTNAME    = qr{^\W+client-hostname\s\"([^"]+)\"};
+our $CIRCUIT_ID  = qr{^\W+option\sagent.circuit-id\s(.+)};
 our $END         = qr{^\}$};
 
+=head2 METHODS
 
-sub fetch_subnet { #==========================================================
+=head2 new($file)
 
-    ### init
+Object constructor. Takes one argument; a filename to parse. This can be
+either a dhcpd.conf or dhcpd.leases file.
+
+=cut
+
+sub new {
+    my $class = shift;
+    my $file  = shift;
+
+    return 'file does not exist'  unless(-f $file);
+    return 'file is not readable' unless(-r $file);
+
+    open(my $self, '<', $file) or return $!;
+
+    return bless $self, $class;
+}
+
+=head2 fetch_subnet
+
+This method returns an object of the C<Net::DHCP::Info::Obj> class.
+
+=cut
+
+sub fetch_subnet {
     my $self = shift;
     my $tab  = "";
     my $net;
@@ -46,20 +93,23 @@ sub fetch_subnet { #==========================================================
         }
         elsif(my @net = /$RANGE/mx) {
             $net[1] = $net[0] unless($net[1]);
-            $net->_add_range(\@net);
+            $net->add_range(\@net);
         }
         elsif(/$tab\}/mx) {
             last READ_NET;
         }
     }
 
-    ### the end
     return ref $net ? $net : undef;
 }
 
-sub fetch_lease { #===========================================================
+=head2 fetch_lease
 
-    ### init
+This method returns an object of the C<Net::DHCP::Info::Obj> class.
+
+=cut
+
+sub fetch_lease {
     my $self = shift;
     my $lease;
 
@@ -94,90 +144,16 @@ sub fetch_lease { #===========================================================
         elsif(/$BINDING/mx) {
             $lease->binding($1);
         }
+        elsif(/$HOSTNAME/mx) {
+            $lease->hostname($1);
+        }
         elsif(/$END/mx) {
             last READ_LEASE;
         }
     }
 
-    ### the end
     return ref $lease ? $lease : undef;
 }
-
-sub new { #===================================================================
-
-    ### init
-    my $class = shift;
-    my $file  = shift;
-
-    ### detect error
-    return 'file does not exist'  unless(-f $file);
-    return 'file is not readable' unless(-r $file);
-
-    ### open file
-    open(my $self, '<', $file) or return $!;
-
-    ### the end
-    return bless $self, $class;
-}
-
-sub fixmac { #================================================================
-
-    ### init
-    my $mac = shift;
-
-    ### fix mac
-    $mac =  unpack('H*', $mac) if($mac =~ /[\x00-\x1f]/mx);
-    $mac =~ y/a-fA-F0-9\://cd;
-    $mac =  join "", map {
-                             my $i = 2 - length($_);
-                             ($i < 0) ? $_ : ("0" x $i) .$_;
-                         } split /:/mx, $mac;
-
-    ### the end
-    return $mac;
-}
-
-#=============================================================================
-1983;
-__END__
-
-=head1 NAME
-
-Net::DHCP::Info - Fast dhcpd.leases and dhcpd.conf parser
-
-=head1 VERSION
-
-Version 0.01
-
-=head1 SYNOPSIS
-
-    use Net::DHCP::Info;
-
-    my $conf  = Net::DHCP::Info->new($path_to_dhcpd_conf);
-    my $lease = Net::DHCP::Info->new($path_to_dhcpd_leases);
-
-    while(my $net = $conf->fetch_subnet) {
-        # .. do stuff with $net
-    }
-
-    while(my $lease = $lease->fetch_lease) {
-        # .. do stuff with $lease
-    }
-
-=head1 METHODS
-
-=head2 C<new>
-
-Object constructor. Takes one argument; a filename to parse. This can be
-either a dhcpd.conf or dhcpd.leases file.
-
-=head2 C<fetch_subnet>
-
-This method returns an object of the C<Net::DHCP::Info::Obj> class.
-
-=head2 C<fetch_lease>
-
-This method returns an object of the C<Net::DHCP::Info::Obj> class.
 
 =head1 FUNCTIONS
 
@@ -186,47 +162,24 @@ This method returns an object of the C<Net::DHCP::Info::Obj> class.
 Takes a mac in various formats as an argument, and returns it as a 12 char
 string.
 
+=cut
+
+sub fixmac {
+    my $mac = shift;
+
+    $mac =  unpack('H*', $mac) if($mac =~ /[\x00-\x1f]/mx);
+    $mac =~ y/a-fA-F0-9\://cd;
+    $mac =  join "", map {
+                             my $i = 2 - length($_);
+                             ($i < 0) ? $_ : ("0" x $i) .$_;
+                         } split /:/mx, $mac;
+
+    return $mac;
+}
+
 =head1 AUTHOR
 
 Jan Henning Thorsen, C<< <pm at flodhest.net> >>
-
-=head1 BUGS
-
-Please report any bugs or feature requests to
-C<bug-net-dhcp-info at rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-DHCP-Info>.
-I will be notified, and then you'll automatically be notified of progress on
-your bug as I make changes.
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc Net::DHCP::Info
-
-You can also look for information at:
-
-=over 4
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Net-DHCP-Info>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Net-DHCP-Info>
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-DHCP-Info>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Net-DHCP-Info>
-
-=back
-
-=head1 ACKNOWLEDGEMENTS
 
 =head1 COPYRIGHT & LICENSE
 
@@ -236,3 +189,5 @@ This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
 =cut
+
+1;

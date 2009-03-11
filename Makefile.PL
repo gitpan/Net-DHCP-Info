@@ -1,17 +1,12 @@
-use strict;
-use warnings;
-use ExtUtils::MakeMaker;
+use inc::Module::Install;
 
-WriteMakefile(
-    NAME                => 'Net::DHCP::Info',
-    AUTHOR              => 'Jan Henning Thorsen <pm@flodhest.net>',
-    VERSION_FROM        => 'lib/Net/DHCP/Info.pm',
-    ABSTRACT_FROM       => 'lib/Net/DHCP/Info.pm',
-    PL_FILES            => {},
-    PREREQ_PM           => {
-                               'DateTime'    => 0,
-                               'NetAddr::IP' => 0,
-                           },
-    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'Net-DHCP-Info-*' },
-);
+name     q(Net-DHCP-Info);
+all_from q(lib/Net/DHCP/Info.pm);
+
+requires      q(DateTime)           => 0;
+requires      q(NetAddr::IP)        => 0;
+test_requires q(Test::More)         => 0;
+test_requires q(Test::Perl::Critic) => 0;
+test_requires q(Test::Pod)          => 0;
+
+WriteAll;

@@ -4,4 +4,5 @@ lease 192.168.0.253 {
   tstp 4 2007/09/20 17:51:41;
   binding state free;
   hardware ethernet 00:0e:7b:cc:bb:aa;
+  client-hostname "foo.com";
 }
