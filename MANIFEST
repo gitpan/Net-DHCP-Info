@@ -1,9 +1,11 @@
-.gitignore
 Changes
+inc/Module/AutoInstall.pm
 inc/Module/Install.pm
+inc/Module/Install/AutoInstall.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
 inc/Module/Install/Fetch.pm
+inc/Module/Install/Include.pm
 inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
@@ -20,6 +22,7 @@ t/01-pod.t
 t/02-config.t
 t/02-leases.t
 t/03-datetime.t
+t/10-config-compex.t
 t/dhcpd.conf
 t/dhcpd.leases
 t/perlcritic.rc

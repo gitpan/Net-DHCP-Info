@@ -4,9 +4,16 @@ package Net::DHCP::Info;
 
 Net::DHCP::Info - Fast dhcpd.leases and dhcpd.conf parser
 
+=head1 NOTE
+
+=head2 DEPRECATED
+
+This module is not very flexible, and not maintained.
+Use L<Net::ISC::DHCPd> instead.
+
 =head1 VERSION
 
-Version 0.10
+Version 0.11
 
 =head1 SYNOPSIS
 
@@ -29,7 +36,7 @@ use strict;
 use warnings;
 use Net::DHCP::Info::Obj;
 
-our $VERSION     = '0.10';
+our $VERSION     = '0.11';
 our $FIND_NET    = qr{^([^s]*)subnet\s+([\d\.]+)\s+netmask\s+([\d\.]+)};
 our $ROUTERS     = qr{^\W*option\s+routers\s+([\d\.\s]+)};
 our $RANGE       = qr{^\W*range\s+([\d\.]+)\s*([\d\.]*)};
@@ -42,6 +49,8 @@ our $BINDING     = qr{^\W+binding\sstate\s(.+)};
 our $HOSTNAME    = qr{^\W+client-hostname\s\"([^"]+)\"};
 our $CIRCUIT_ID  = qr{^\W+option\sagent.circuit-id\s(.+)};
 our $END         = qr{^\}$};
+
+my %stash;
 
 =head2 METHODS
 
@@ -56,12 +65,15 @@ sub new {
     my $class = shift;
     my $file  = shift;
 
-    return 'file does not exist'  unless(-f $file);
-    return 'file is not readable' unless(-r $file);
-
-    open(my $self, '<', $file) or return $!;
-
-    return bless $self, $class;
+    if(ref $file eq 'GLOB') {
+        return bless $file, $class;
+    }
+    else {
+        return 'file does not exist'  unless(-f $file);
+        return 'file is not readable' unless(-r $file);
+        open(my $self, '<', $file) or return $!;
+        return bless $self, $class;
+    }
 }
 
 =head2 fetch_subnet
@@ -175,6 +187,11 @@ sub fixmac {
                          } split /:/mx, $mac;
 
     return $mac;
+}
+
+sub DESTROY {
+    my $self = shift;
+    delete $stash{$self};
 }
 
 =head1 AUTHOR

@@ -1,8 +1,13 @@
 NAME
     Net::DHCP::Info - Fast dhcpd.leases and dhcpd.conf parser
 
+NOTE
+  DEPRECATED
+    This module is not very flexible, and not maintained. Use
+    Net::ISC::DHCPd instead.
+
 VERSION
-    Version 0.1
+    Version 0.11
 
 SYNOPSIS
         use Net::DHCP::Info;
@@ -18,16 +23,16 @@ SYNOPSIS
             # .. do stuff with $lease
         }
 
-METHODS
-  "new"
+  METHODS
+  new($file)
     Object constructor. Takes one argument; a filename to parse. This can be
     either a dhcpd.conf or dhcpd.leases file.
 
-  "fetch_subnet"
-    This method returns an object of "Net::DHCP::Info::Obj"
+  fetch_subnet
+    This method returns an object of the "Net::DHCP::Info::Obj" class.
 
-  "fetch_lease"
-    This method returns an object of "Net::DHCP::Info::Obj"
+  fetch_lease
+    This method returns an object of the "Net::DHCP::Info::Obj" class.
 
 FUNCTIONS
   fixmac
@@ -37,33 +42,6 @@ FUNCTIONS
 AUTHOR
     Jan Henning Thorsen, "<pm at flodhest.net>"
 
-BUGS
-    Please report any bugs or feature requests to "bug-net-dhcp-info at
-    rt.cpan.org", or through the web interface at
-    <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-DHCP-Info>. I will
-    be notified, and then you'll automatically be notified of progress on
-    your bug as I make changes.
-
-SUPPORT
-    You can find documentation for this module with the perldoc command.
-
-        perldoc Net::DHCP::Info
-
-    You can also look for information at:
-
-    * AnnoCPAN: Annotated CPAN documentation
-        <http://annocpan.org/dist/Net-DHCP-Info>
-
-    * CPAN Ratings
-        <http://cpanratings.perl.org/d/Net-DHCP-Info>
-
-    * RT: CPAN's request tracker
-        <http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-DHCP-Info>
-
-    * Search CPAN
-        <http://search.cpan.org/dist/Net-DHCP-Info>
-
-ACKNOWLEDGEMENTS
 COPYRIGHT & LICENSE
     Copyright 2007 Jan Henning Thorsen, all rights reserved.
 
