@@ -36,7 +36,7 @@ use strict;
 use warnings;
 use Net::DHCP::Info::Obj;
 
-our $VERSION     = '0.11';
+our $VERSION     = '0.12';
 our $FIND_NET    = qr{^([^s]*)subnet\s+([\d\.]+)\s+netmask\s+([\d\.]+)};
 our $ROUTERS     = qr{^\W*option\s+routers\s+([\d\.\s]+)};
 our $RANGE       = qr{^\W*range\s+([\d\.]+)\s*([\d\.]*)};

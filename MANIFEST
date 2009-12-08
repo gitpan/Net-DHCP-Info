@@ -22,7 +22,4 @@ t/01-pod.t
 t/02-config.t
 t/02-leases.t
 t/03-datetime.t
-t/10-config-compex.t
-t/dhcpd.conf
-t/dhcpd.leases
 t/perlcritic.rc
